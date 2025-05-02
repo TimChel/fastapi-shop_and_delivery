@@ -2,18 +2,18 @@ from sqlmodel import SQLModel, Field
 from pydantic import EmailStr
 
 
-class User(SQLModel):
+class UserBase(SQLModel):
     user_name: str = Field(description="Имя пользователя", max_length=30)
     email: EmailStr
 
-class Order(SQLModel):
+class OrderBase(SQLModel):
     pass
 
-class Product(SQLModel):
+class ProductBase(SQLModel):
     pass
 
-class Truck(SQLModel):
+class TruckBase(SQLModel):
     pass
 
-class Delivery(SQLModel):
+class DeliveryBase(SQLModel):
     pass
