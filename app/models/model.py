@@ -6,6 +6,8 @@ class UserBase(SQLModel):
     user_name: str = Field(description="Имя пользователя", max_length=30)
     email: EmailStr
 
+class U
+
 class OrderBase(SQLModel):
     pass
 
