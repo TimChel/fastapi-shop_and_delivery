@@ -11,7 +11,16 @@ class UserBase(SQLModel):
     name: str = Field(description="Имя пользователя", max_length=30)
     email: EmailStr = Field(unique_items=True, index=True)
 
-class UserCreateByAdmin(UserBase):
+class UserCreate(UserBase):
+    password: str
+
+class UserGet(UserBase):
+    user_id: int
+
+class UserGetByAdmin(UserGet):
+    access_level: "AccessLevel"
+
+class UserCreateByAdmin(UserCreate):
     access_level_name: str
 
 class User(UserBase, table=True):
@@ -37,5 +46,5 @@ class DeliveryBase(SQLModel):
 
 class AccessLevel(SQLModel, table=True):
     __table_args__ = (UniqueConstraint("name"),)
-    id: int | None = Field(default=None, primary_key=True)
+    access_level_id: int | None = Field(default=None, primary_key=True)
     name: str = Field(unique_items=True, index=True)

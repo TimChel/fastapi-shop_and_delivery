@@ -9,7 +9,8 @@ exampl_create_user = Body(
             "value": {
                 "name": "Иван",
                 "email": "abra@gmail.com",
-                "access_level": "customer"
+                "access_level": "customer",
+                "password": "flkjvdlkjv"
             }
         },
         "поставщик": {
@@ -18,7 +19,8 @@ exampl_create_user = Body(
             "value": {
                 "name": "Иван",
                 "email": "abra@gmail.com",
-                "access_level": "provider"
+                "access_level": "provider",
+                "password": "flkjvdlkjv"
             }
         },
         "администратор": {
@@ -27,7 +29,8 @@ exampl_create_user = Body(
             "value": {
                 "name": "Иван",
                 "email": "abra@gmail.com",
-                "access_level": "admin"
+                "access_level": "admin",
+                "password": "flkjvdlkjv"
             }
         }
     }
