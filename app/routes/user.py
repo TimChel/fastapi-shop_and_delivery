@@ -3,7 +3,7 @@ from typing import Annotated
 from fastapi import APIRouter, status, Depends, HTTPException
 from ..models import model
 from ..api_docs import request_examples
-from app.data_handler import (add_user_to_db)
+from app.data_handler import (add_user_to_db, update_user)
 from app.db import get_session
 from sqlmodel import Session
 from ..auth import auth_handler
@@ -12,6 +12,10 @@ from psycopg2.errors import UniqueViolation
 
 router = APIRouter(prefix="/user", tags=["Работа с данными пользователей"])
 
+@router.patch("/update/admin/{user_id}", status_code=status.HTTP_200_OK, response_model=model.UserGetByAdmin)
+def update_user_by_admin(user_id: int, user: model.UserUpdateByAdmin, session: Session = Depends(get_session)):
+    updated_user = update_user(user_id, user, session)
+    return updated_user
 
 @router.post("/create", status_code=status.HTTP_201_CREATED, response_model=model.UserGetByAdmin, summary="Создать нового пользователя вручную")
 def create_user_by_admin(user: Annotated[model.UserCreateByAdmin, request_examples.exampl_create_user], session: Session = Depends(get_session)):
@@ -36,4 +40,6 @@ def create_provider(user: model.UserCreate, session: Session = Depends(get_sessi
     access_level_name = "provider"
     new_user = add_user_to_db(user, access_level_name, session)
     return new_user
+
+
 

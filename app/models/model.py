@@ -2,7 +2,6 @@ from sqlmodel import SQLModel, Field
 from pydantic import EmailStr
 from sqlalchemy import UniqueConstraint
 
-
 class UserBase(SQLModel):
     __table_args__ = (UniqueConstraint("email"),)
     name: str = Field(description="Имя пользователя", max_length=30)
@@ -15,14 +14,22 @@ class UserGet(UserBase):
     user_id: int
 
 class UserGetByAdmin(UserGet):
-    access_level: "AccessLevel"
+    access_level_name: str
 
 class UserCreateByAdmin(UserCreate):
     access_level_name: str = "customer"
 
+class UserUpdate(SQLModel):
+    name: str | None = Field(default= None, description="Имя пользователя", max_length=30)
+    email: EmailStr | None = None
+
+class UserUpdateByAdmin(UserUpdate):
+    access_level_name: str | None = None
+
 class User(UserBase, table=True):
     user_id: int | None = Field(default=None, primary_key=True)
     # access_level: "AccessLevel"
+    access_level_name: str
     hashed_password: str
     # order: list["Order"]
 
@@ -45,3 +52,4 @@ class AccessLevel(SQLModel, table=True):
     __table_args__ = (UniqueConstraint("name"),)
     access_level_id: int | None = Field(default=None, primary_key=True)
     name: str = Field(unique_items=True, index=True)
+

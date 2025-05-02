@@ -17,10 +17,8 @@ def add_to_db(data, session):
     return data
 
 def add_user_to_db(user, access_level_name, session):
-    access_level = session.exec(select(AccessLevel).where(AccessLevel.name == access_level_name)).first()
-    if not access_level:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Не существует уровня доступа с именем '{access_level_name}'")
-    extra_data = {"hashed_password": auth_handler.get_password_hash(user.password), "access_level": access_level}
+    access_level_name_check(access_level_name, session)
+    extra_data = {"hashed_password": auth_handler.get_password_hash(user.password), "access_level_name": access_level_name}
     new_user = model.User.model_validate(user, update=extra_data)
     try:
         new_user = add_to_db(new_user, session)
@@ -28,3 +26,35 @@ def add_user_to_db(user, access_level_name, session):
     except IntegrityError as e:
         raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
                            detail=f"Пользоатель с email {user.email} уже существует")
+
+def update_user(user_id, user, session):
+    db_user = session.get(model.User, user_id)
+    if not db_user:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detil=f"Пользователя с id {user_id} не существет")
+    try:
+        db_user.sqlmodel_update(user.model_dump(exclude_unset=True))
+        access_level_name_check(db_user.access_level_name, session)
+        db_user = add_to_db(db_user, session)
+        return db_user
+    except IntegrityError as e:
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                           detail=f"Пользоатель с email {user.email} уже существует")
+    # if db_user.email in session.exec(select(model.User.email)).all():
+    #     raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+    #                         detail=f"Пользоатель с email {user.email} уже существует")
+    # db_user = add_to_db(db_user, session)
+    # return db_user
+
+    # try:
+    #     db_user = add_to_db(db_user, session)
+    #     return db_user
+    # except IntegrityError as e:
+    #     raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+    #                        detail=f"Пользоатель с email {user.email} уже существует")
+
+def access_level_name_check(access_level_name, session):
+    access_level = session.exec(select(AccessLevel).where(AccessLevel.name == access_level_name)).first()
+    if not access_level:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                            detail=f"Не существует уровня доступа с именем '{access_level_name}'")
+    return access_level
