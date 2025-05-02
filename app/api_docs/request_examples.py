@@ -5,10 +5,11 @@ exampl_create_user = Body(
     openapi_examples={
         "покупатель": {
             "summary": "Создание покупателя",
-            "description": "Запрос для ручного создания аккаунта для покупателя (без указания уровня доступа)",
+            "description": "Запрос для ручного создания аккаунта для покупателя (уровень доступа - 'customer')",
             "value": {
                 "name": "Иван",
                 "email": "abra@gmail.com",
+                "access_level": "customer"
             }
         },
         "поставщик": {

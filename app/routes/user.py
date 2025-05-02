@@ -12,7 +12,7 @@ from psycopg2.errors import UniqueViolation
 router = APIRouter(prefix="/user", tags=("Работа с данными пользователей"))
 
 
-@router.post("/", status_code=status.HTTP_201_CREATED, response_model=model.UserGet_by_Admin, summary="Создать нового пользователя вручную")
-def create_user(user: Annotated[model.UserCreate, request_examples.exampl_create_user], session: Session = Depends(get_session)):
+@router.post("/", status_code=status.HTTP_201_CREATED, response_model=model.UserGetByAdmin, summary="Создать нового пользователя вручную")
+def create_user(user: Annotated[model.UserCreateByAdmin, request_examples.exampl_create_user], session: Session = Depends(get_session)):
     new_user = add_user_to_db(user, session)
     return new_user
