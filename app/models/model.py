@@ -1,6 +1,3 @@
-from email.policy import default
-from operator import index
-
 from sqlmodel import SQLModel, Field
 from pydantic import EmailStr
 from sqlalchemy import UniqueConstraint
@@ -21,19 +18,19 @@ class UserGetByAdmin(UserGet):
     access_level: "AccessLevel"
 
 class UserCreateByAdmin(UserCreate):
-    access_level_name: str
+    access_level_name: str = "customer"
 
 class User(UserBase, table=True):
     user_id: int | None = Field(default=None, primary_key=True)
-    access_level: "AccessLevel"
+    # access_level: "AccessLevel"
     hashed_password: str
-    order: list["Order"]
+    # order: list["Order"]
 
 class OrderBase(SQLModel):
     pass
 
-class Order(SQLModel, table=True):
-    pass
+# class Order(SQLModel, table=True):
+#     order_id: int
 
 class ProductBase(SQLModel):
     pass
