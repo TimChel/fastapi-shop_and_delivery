@@ -75,6 +75,12 @@ def update_product_p(db_product, product, session):
         raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
                            detail=f"Товар с названием '{product.name}' уже существует")
 
+def add_truck_to_db(truck, session):
+    if truck.size_x <=0 or truck.size_y <= 0:
+        raise HTTPException(status_code=status.HTTP_417_EXPECTATION_FAILED, detail=f"Размеры грузовика должны быть натуральными числами")
+    new_truck = model.Truck.model_validate(truck)
+    new_truck = add_to_db(new_truck, session)
+    return new_truck
 
 
 

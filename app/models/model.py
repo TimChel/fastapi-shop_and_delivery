@@ -73,7 +73,21 @@ class Product(ProductBase, table=True):
 
 
 class TruckBase(SQLModel):
+    size_x: int
+    size_y: int
+
+class TruckGet(TruckBase):
+    id: int
+    available: bool
+
+class TruckCreate(TruckBase):
     pass
+
+class Truck(TruckBase, table=True):
+    id: int | None = Field(default=None, primary_key=True)
+    available: bool = True
+
+
 
 class DeliveryBase(SQLModel):
     pass
