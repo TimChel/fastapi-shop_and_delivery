@@ -31,7 +31,7 @@ class User(UserBase, table=True):
     hashed_password: str
     access_level_id: int = Field(foreign_key="accesslevel.access_level_id")
     access_level: "AccessLevel" = Relationship(back_populates="users")
-    products: list["Product"] = Relationship(back_populates="provider")
+    products: list["Product"] = Relationship(back_populates="provider", cascade_delete=True)
     # order: list["Order"]
 
 
