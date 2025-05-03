@@ -31,7 +31,10 @@ class User(UserBase, table=True):
     hashed_password: str
     access_level_id: int = Field(foreign_key="accesslevel.access_level_id")
     access_level: "AccessLevel" = Relationship(back_populates="users")
+    products: list["Product"] = Relationship(back_populates="provider")
     # order: list["Order"]
+
+
 
 class OrderBase(SQLModel):
     pass
@@ -39,8 +42,28 @@ class OrderBase(SQLModel):
 # class Order(SQLModel, table=True):
 #     order_id: int
 
+
+
+
 class ProductBase(SQLModel):
+    __table_args__ = (UniqueConstraint("name"),)
+    name: str = Field(unique_items=True, index=True)
+    size_x: int
+    size_y: int
+
+class ProductCreate(ProductBase):
     pass
+
+class ProductGet(ProductBase):
+    id_product: int
+    provider: "UserGet"
+
+class Product(ProductBase, table=True):
+    id_product: int | None = Field(default=None, primary_key=True)
+    provider: "User" = Relationship(back_populates="products")
+    provider_id: int = Field(foreign_key="user.user_id")
+
+
 
 class TruckBase(SQLModel):
     pass

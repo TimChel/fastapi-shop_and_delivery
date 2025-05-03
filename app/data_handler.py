@@ -49,3 +49,23 @@ def get_access_level(access_level_name, session):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail=f"Не существует уровня доступа с именем '{access_level_name}'")
     return access_level
+
+def add_product_to_db(product, current_user, session):
+    if product.size_x <=0 or product.size_y <= 0:
+        raise HTTPException(status_code=status.HTTP_417_EXPECTATION_FAILED, detail=f"Размеры товар должны быть натуральными числами")
+    extra_data = {"provider_id": current_user.user_id}
+    new_product = model.Product.model_validate(product, update=extra_data)
+    try:
+        new_product = add_to_db(new_product, session)
+        return new_product
+    except IntegrityError as e:
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                           detail=f"Товар с названием '{product.name}' уже существует")
+
+
+
+
+
+
+
+
