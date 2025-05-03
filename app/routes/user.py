@@ -1,12 +1,11 @@
-from os import access
 from typing import Annotated
 from fastapi import APIRouter, status, Depends, HTTPException
-from ..models import model
-from ..api_docs import request_examples
+from app.models import model
+from app.api_docs import request_examples
 from app.data_handler import (add_user_to_db, update_user)
 from app.db import get_session
 from sqlmodel import Session
-from ..auth import auth_handler
+from app.auth import auth_handler
 from sqlalchemy.exc import IntegrityError
 from psycopg2.errors import UniqueViolation
 
