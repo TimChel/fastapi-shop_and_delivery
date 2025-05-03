@@ -82,6 +82,16 @@ def add_truck_to_db(truck, session):
     new_truck = add_to_db(new_truck, session)
     return new_truck
 
+def add_order_to_db(order, current_user, session):
+    product = session.get(model.Product, order.product_id)
+    if not product:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Товара с id {order.product_id} не существет")
+    extra_data = {"user_id": current_user.user_id}
+    new_order = model.Order.model_validate(order, update=extra_data)
+    new_order = add_to_db(new_order, session)
+    return new_order
+
+
 
 
 

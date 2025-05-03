@@ -1,6 +1,7 @@
 from sqlmodel import SQLModel, Field, Relationship
 from pydantic import EmailStr
 from sqlalchemy import UniqueConstraint
+from datetime import date
 
 class UserBase(SQLModel):
     __table_args__ = (UniqueConstraint("email"),)
@@ -32,15 +33,30 @@ class User(UserBase, table=True):
     access_level_id: int = Field(foreign_key="accesslevel.access_level_id")
     access_level: "AccessLevel" = Relationship(back_populates="users")
     products: list["Product"] = Relationship(back_populates="provider", cascade_delete=True)
-    # order: list["Order"]
+    orders: list["Order"] = Relationship(back_populates="user")
 
 
 
 class OrderBase(SQLModel):
-    pass
+    creation_date: date = Field(default=date.today())
 
-# class Order(SQLModel, table=True):
-#     order_id: int
+class OrderGet(OrderBase):
+    id: int
+
+class OrderWithProductAndUserGet(OrderGet):
+    product: "ProductGet"
+    user: "UserGet"
+
+class OrderCreate(SQLModel):
+    product_id: int
+
+class Order(OrderBase, table=True):
+    id: int | None = Field(default=None, primary_key=True)
+    product_id: int = Field(foreign_key="product.id_product")
+    product: "Product" = Relationship(back_populates="orders")
+    user_id: int = Field(foreign_key="user.user_id")
+    user: "User" = Relationship(back_populates="orders")
+
 
 
 
@@ -69,6 +85,7 @@ class Product(ProductBase, table=True):
     id_product: int | None = Field(default=None, primary_key=True)
     provider: "User" = Relationship(back_populates="products")
     provider_id: int = Field(foreign_key="user.user_id")
+    orders: list["Order"] = Relationship(back_populates="product")
 
 
 
