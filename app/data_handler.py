@@ -23,10 +23,7 @@ def add_user_to_db(user, access_level_name, session):
         raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
                            detail=f"Пользоатель с email {user.email} уже существует")
 
-def update_user(user_id, user, session):
-    db_user = session.get(model.User, user_id)
-    if not db_user:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Пользователя с id {user_id} не существет")
+def update_user(db_user, user, session):
     try:
         db_user.sqlmodel_update(user.model_dump(exclude_unset=True))
         access_level_name_check(db_user.access_level_name, session)

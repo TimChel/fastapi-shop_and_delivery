@@ -11,9 +11,17 @@ from psycopg2.errors import UniqueViolation
 
 router = APIRouter(prefix="/user", tags=["Работа с данными пользователей"])
 
+@router.patch("/update/me", status_code=status.HTTP_200_OK, response_model=model.UserGet)
+def update_user_by_admin(user: model.UserUpdate, current_user: Annotated[model.User, Depends(auth_handler.get_current_user)], session: Session = Depends(get_session)):
+    updated_user = update_user(current_user, user, session)
+    return updated_user
+
 @router.patch("/update/admin/{user_id}", status_code=status.HTTP_200_OK, response_model=model.UserGetByAdmin)
 def update_user_by_admin(user_id: int, user: model.UserUpdateByAdmin, session: Session = Depends(get_session)):
-    updated_user = update_user(user_id, user, session)
+    db_user = session.get(model.User, user_id)
+    if not db_user:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Пользователя с id {user_id} не существет")
+    updated_user = update_user(db_user, user, session)
     return updated_user
 
 @router.post("/create", status_code=status.HTTP_201_CREATED, response_model=model.UserGetByAdmin, summary="Создать нового пользователя вручную")
@@ -39,6 +47,8 @@ def create_provider(user: model.UserCreate, session: Session = Depends(get_sessi
     access_level_name = "provider"
     new_user = add_user_to_db(user, access_level_name, session)
     return new_user
+
+
 
 
 
