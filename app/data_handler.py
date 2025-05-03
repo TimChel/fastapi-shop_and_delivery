@@ -17,6 +17,17 @@ def delete_data(data, session):
     session.commit()
     return data
 
+def size_check(size_x, size_y, turn_permission, session):
+    if size_x <=0 or size_y <= 0:
+        raise HTTPException(status_code=status.HTTP_417_EXPECTATION_FAILED, detail=f"Размеры товар должны быть натуральными числами")
+    for truck in session.exec(select(model.Truck)).all():
+        if size_x <= truck.size_x and size_y <= truck.size_y:
+            return True
+        if turn_permission and size_y <= truck.size_x and size_x <= truck.size_y:
+            return True
+    raise HTTPException(status_code=status.HTTP_417_EXPECTATION_FAILED,
+                        detail=f"К сожалению, у нас нет грузовика, в который поместился бы ваш товар. Приносим свою извинения")
+
 def add_user_to_db(user, access_level_name, session):
     access_level = get_access_level(access_level_name, session)
     extra_data = {"hashed_password": auth_handler.get_password_hash(user.password), "access_level_id": access_level.access_level_id}
@@ -51,8 +62,7 @@ def get_access_level(access_level_name, session):
     return access_level
 
 def add_product_to_db(product, current_user, session):
-    if product.size_x <=0 or product.size_y <= 0:
-        raise HTTPException(status_code=status.HTTP_417_EXPECTATION_FAILED, detail=f"Размеры товар должны быть натуральными числами")
+    size_check(product.size_x, product.size_y, product.turn_permission, session)
     extra_data = {"provider_id": current_user.user_id}
     new_product = model.Product.model_validate(product, update=extra_data)
     try:
@@ -66,9 +76,7 @@ def update_product_p(db_product, product, session):
     try:
         product_data = product.model_dump(exclude_unset=True)
         db_product.sqlmodel_update(product_data)
-        if db_product.size_x <= 0 or db_product.size_y <= 0:
-            raise HTTPException(status_code=status.HTTP_417_EXPECTATION_FAILED,
-                                detail=f"Размеры товар должны быть натуральными числами")
+        size_check(product.size_x, product.size_y, product.turn_permission, session)
         db_product = add_to_db(db_product, session)
         return db_product
     except IntegrityError as e:
@@ -90,6 +98,59 @@ def add_order_to_db(order, current_user, session):
     new_order = model.Order.model_validate(order, update=extra_data)
     new_order = add_to_db(new_order, session)
     return new_order
+
+def create_and_add_delivery_to_db(session):
+    order = session.exec(select(model.Order).where(model.Order.transportation_status==False)).all()
+    if not order:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                                detail=f"На складе нет товаров, требуемых достаку")
+    truck = session.exec(select(model.Truck).where(model.Truck.available==True)).all()
+    if not truck:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                            detail=f"Нет доступных для перевозки грузовиков")
+    truck_data = []
+    order_data = []
+    for i in truck:
+        truck_data.append({
+            "id": i.id,
+            "free_space": [[x, y] for x in i.size_x for y in i.size_y],
+            "space": [[x, y] for x in i.size_x for y in i.size_y],
+            "order_id": [],
+            "size": [i.size_x, i.size_y]
+        })
+    for i in order:
+        order_data.append({
+            "id": i.id,
+            "size": [[x, y] for x in i.product.size_x for y in i.product.size_y],
+            "turn_permisson": i.product.turn_permission,
+            "date": i.due_date,
+            "truck_id": -1
+        })
+    order_data.sort(key = lambda x: x["date"])
+    order_in_truck = []
+    empty_track = truck_data.copy()
+    non_empty_truck = []
+    for box in order_data:
+        boxes_in_truck(empty_track.copy(), non_empty_truck.copy(), [box])
+    pass
+
+def boxes_in_truck(empty_truck, non_empty_truck, boxes):
+    for truck in non_empty_truck:
+        if len(truck["free_space"]) >= len(boxes[0]["size"]):
+            for start in truck["free_space"]:
+                free_space = truck["free_space"].copy()
+                for dot in boxes[0]["size"]:
+                    if [dot[0] + start[0], dot[1] + start[1]] in truck["free_space"]:
+                        free_space.remove([dot[0] + start[0], dot[1] + start[1]])
+                    else:
+                        break
+                else:
+                    if len(boxes) == 1:
+                        truck["free_space"]=free_space
+                        return empty_truck, non_empty_truck, boxes
+                    else:
+                        boxes_in_truck(empty_truck, )
+
 
 
 

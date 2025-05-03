@@ -18,7 +18,7 @@ def lifespan(app: FastAPI):
     yield
 
 app = FastAPI(
-    # lifespan=lifespan,
+    lifespan=lifespan,
     title="Система управления покупками и перевозками",
     description="Простейшая система управления покупками и перевозками, основанная на "
                 "фреймворке FastAPI.",
