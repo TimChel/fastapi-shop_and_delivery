@@ -12,12 +12,14 @@ from psycopg2.errors import UniqueViolation
 router = APIRouter(prefix="/user", tags=["Работа с данными пользователей"])
 
 @router.patch("/update/me", status_code=status.HTTP_200_OK, response_model=model.UserGet)
-def update_user_by_admin(user: model.UserUpdate, current_user: Annotated[model.User, Depends(auth_handler.get_current_user)], session: Session = Depends(get_session)):
+def update_user(user: model.UserUpdate, current_user: Annotated[model.User, Depends(auth_handler.get_current_user)], session: Session = Depends(get_session)):
     updated_user = update_user(current_user, user, session)
     return updated_user
 
 @router.patch("/update/admin/{user_id}", status_code=status.HTTP_200_OK, response_model=model.UserGetByAdmin)
-def update_user_by_admin(user_id: int, user: model.UserUpdateByAdmin, session: Session = Depends(get_session)):
+def update_user_by_admin(user_id: int, user: model.UserUpdateByAdmin, current_user: Annotated[model.User, Depends(auth_handler.get_current_user)], session: Session = Depends(get_session)):
+    if current_user.access_level_name != 'admin':
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=f"Для использования данной функции необходимо иметь уровень доступа 'admin'")
     db_user = session.get(model.User, user_id)
     if not db_user:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Пользователя с id {user_id} не существет")
@@ -25,7 +27,9 @@ def update_user_by_admin(user_id: int, user: model.UserUpdateByAdmin, session: S
     return updated_user
 
 @router.post("/create", status_code=status.HTTP_201_CREATED, response_model=model.UserGetByAdmin, summary="Создать нового пользователя вручную")
-def create_user_by_admin(user: Annotated[model.UserCreateByAdmin, request_examples.exampl_create_user], session: Session = Depends(get_session)):
+def create_user_by_admin(user: Annotated[model.UserCreateByAdmin, request_examples.exampl_create_user], current_user: Annotated[model.User, Depends(auth_handler.get_current_user)], session: Session = Depends(get_session)):
+    if current_user.access_level_name != 'admin':
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=f"Для использования данной функции необходимо иметь уровень доступа 'admin'")
     access_level_name = user.access_level_name
     new_user = add_user_to_db(user, access_level_name, session)
     return new_user
