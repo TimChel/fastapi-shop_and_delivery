@@ -1,4 +1,4 @@
-from sqlmodel import SQLModel, Field
+from sqlmodel import SQLModel, Field, Relationship
 from pydantic import EmailStr
 from sqlalchemy import UniqueConstraint
 
@@ -13,8 +13,8 @@ class UserCreate(UserBase):
 class UserGet(UserBase):
     user_id: int
 
-class UserGetByAdmin(UserGet):
-    access_level_name: str
+class UserWithAccessLevelGet(UserGet):
+    access_level: "AccessLevelGet"
 
 class UserCreateByAdmin(UserCreate):
     access_level_name: str = "customer"
@@ -28,9 +28,9 @@ class UserUpdateByAdmin(UserUpdate):
 
 class User(UserBase, table=True):
     user_id: int | None = Field(default=None, primary_key=True)
-    # access_level: "AccessLevel"
-    access_level_name: str
     hashed_password: str
+    access_level_id: int = Field(foreign_key="accesslevel.access_level_id")
+    access_level: "AccessLevel" = Relationship(back_populates="users")
     # order: list["Order"]
 
 class OrderBase(SQLModel):
@@ -48,8 +48,17 @@ class TruckBase(SQLModel):
 class DeliveryBase(SQLModel):
     pass
 
-class AccessLevel(SQLModel, table=True):
+class AccessLevelBase(SQLModel):
     __table_args__ = (UniqueConstraint("name"),)
-    access_level_id: int | None = Field(default=None, primary_key=True)
     name: str = Field(unique_items=True, index=True)
+
+class AccessLevelGet(AccessLevelBase):
+    access_level_id: int
+
+class AccessLevelWithUsersGet(AccessLevelGet):
+    users: list["UserGet"]
+
+class AccessLevel(AccessLevelBase, table=True):
+    access_level_id: int | None = Field(default=None, primary_key=True)
+    users: list["User"] = Relationship(back_populates="access_level")
 

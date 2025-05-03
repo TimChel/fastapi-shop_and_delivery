@@ -12,9 +12,14 @@ def add_to_db(data, session):
     session.refresh(data)
     return data
 
+def delete_data(data, session):
+    session.delete(data)
+    session.commit()
+    return data
+
 def add_user_to_db(user, access_level_name, session):
-    access_level_name_check(access_level_name, session)
-    extra_data = {"hashed_password": auth_handler.get_password_hash(user.password), "access_level_name": access_level_name}
+    access_level = get_access_level(access_level_name, session)
+    extra_data = {"hashed_password": auth_handler.get_password_hash(user.password), "access_level_id": access_level.access_level_id}
     new_user = model.User.model_validate(user, update=extra_data)
     try:
         new_user = add_to_db(new_user, session)
@@ -23,10 +28,14 @@ def add_user_to_db(user, access_level_name, session):
         raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
                            detail=f"Пользоатель с email {user.email} уже существует")
 
-def update_user(db_user, user, session):
+def update_user_u(db_user, user, session):
     try:
-        db_user.sqlmodel_update(user.model_dump(exclude_unset=True))
-        access_level_name_check(db_user.access_level_name, session)
+        user_data = user.model_dump(exclude_unset=True)
+        extra_data = {}
+        if "access_level_name" in user_data:
+            access_level = get_access_level(user.access_level_name, session)
+            extra_data["access_level"] = access_level
+        db_user.sqlmodel_update(user_data, update=extra_data)
         db_user = add_to_db(db_user, session)
         return db_user
     except IntegrityError as e:
@@ -34,7 +43,7 @@ def update_user(db_user, user, session):
                            detail=f"Пользоатель с email {user.email} уже существует")
 
 
-def access_level_name_check(access_level_name, session):
+def get_access_level(access_level_name, session):
     access_level = session.exec(select(model.AccessLevel).where(model.AccessLevel.name == access_level_name)).first()
     if not access_level:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
