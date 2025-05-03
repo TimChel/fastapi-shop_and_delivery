@@ -56,7 +56,14 @@ class ProductCreate(ProductBase):
 
 class ProductGet(ProductBase):
     id_product: int
+
+class ProductWithProviderGet(ProductGet):
     provider: "UserGet"
+
+class ProductUpdate(SQLModel):
+    name: str | None = None
+    size_x: int | None = None
+    size_y: int | None = None
 
 class Product(ProductBase, table=True):
     id_product: int | None = Field(default=None, primary_key=True)

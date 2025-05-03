@@ -62,6 +62,18 @@ def add_product_to_db(product, current_user, session):
         raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
                            detail=f"Товар с названием '{product.name}' уже существует")
 
+def update_product_p(db_product, product, session):
+    try:
+        product_data = product.model_dump(exclude_unset=True)
+        db_product.sqlmodel_update(product_data)
+        if db_product.size_x <= 0 or db_product.size_y <= 0:
+            raise HTTPException(status_code=status.HTTP_417_EXPECTATION_FAILED,
+                                detail=f"Размеры товар должны быть натуральными числами")
+        db_product = add_to_db(db_product, session)
+        return db_product
+    except IntegrityError as e:
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                           detail=f"Товар с названием '{product.name}' уже существует")
 
 
 

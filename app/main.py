@@ -18,7 +18,7 @@ def lifespan(app: FastAPI):
     yield
 
 app = FastAPI(
-    lifespan=lifespan,
+    # lifespan=lifespan,
     title="Система управления покупками и перевозками",
     description="Простейшая система управления покупками и перевозками, основанная на "
                 "фреймворке FastAPI.",
@@ -35,7 +35,6 @@ app = FastAPI(
 )
 
 app.include_router(auth.router)
-
 # app.include_router(delivery.router)
 # app.include_router(order.router)
 app.include_router(product.router)
