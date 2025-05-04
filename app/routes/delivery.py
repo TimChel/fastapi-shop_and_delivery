@@ -48,8 +48,5 @@ def delete_delivery_by_id(delivery_id: int, current_user: Annotated[model.User, 
     if current_user.access_level.name != "admin" and db_delivery.user.user_id != current_user.user_id:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
                             detail=f"Удаление товара другого пользователя запрещено")
-
-
-
     db_delivery = delete_data(db_delivery, session)
     return f"Товар удален"

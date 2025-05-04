@@ -45,5 +45,8 @@ def delete_truck_by_id(truck_id: int, current_user: Annotated[model.User, Depend
     if current_user.access_level.name != "admin":
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
                             detail=f"Удаление грузовика запрещено")
+    if db_truck.delivery_id is not None:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
+                            detail=f"Невозможно отменить грузовик, который находтся в процессе доставки")
     db_truck = delete_data(db_truck, session)
     return f"Грузовик удален"

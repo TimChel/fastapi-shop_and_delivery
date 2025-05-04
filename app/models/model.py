@@ -39,7 +39,6 @@ class User(UserBase, table=True):
 
 class OrderBase(SQLModel):
     creation_date: date = Field(default=date.today())
-    transportation_status: bool = False
 
 class OrderGet(OrderBase):
     id: int
@@ -58,8 +57,9 @@ class Order(OrderBase, table=True):
     user_id: int = Field(foreign_key="user.user_id")
     user: "User" = Relationship(back_populates="orders")
     delivery_id: int | None = Field(default=None, foreign_key="delivery.id")
-    delivery: "Delivery" | None = Relationship(back_populates="orders")
-
+    delivery: "Delivery" = Relationship(back_populates="orders")
+    truck_id: int | None = Field(default=None, foreign_key="truck.id")
+    truck: "Truck" = Relationship(back_populates="orders")
 
 
 
@@ -110,7 +110,8 @@ class Truck(TruckBase, table=True):
     id: int | None = Field(default=None, primary_key=True)
     available: bool = True
     delivery_id: int | None = Field(default=None, foreign_key="delivery.id")
-    delivery: "Delivery" | None = Relationship(back_populates="trucks")
+    delivery: "Delivery" = Relationship(back_populates="trucks")
+    orders: list["Order"] = Relationship(back_populates="truck")
 
 
 
@@ -125,7 +126,7 @@ class DeliveryGet(DeliveryBase):
 class Delivery(DeliveryBase, table=True):
     id: int | None = Field(default=None, primary_key=True)
     orders: list["Order"] = Relationship(back_populates="delivery")
-    trucks: list["Truck"] = Relationship(back_populats="delivery")
+    trucks: list["Truck"] = Relationship(back_populates="delivery")
 
 
 

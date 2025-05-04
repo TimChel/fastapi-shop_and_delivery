@@ -50,7 +50,7 @@ def delete_order_by_id(order_id: int, current_user: Annotated[model.User, Depend
     if current_user.access_level.name != "admin" and db_order.user.user_id != current_user.user_id:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
                             detail=f"Удаление товара другого пользователя запрещено")
-    if db_order.transportation_status:
+    if db_order.delivery_id is not None:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
                             detail=f"Невозможно отменить заказ, который находтся в процессе доставки")
     db_order = delete_data(db_order, session)
