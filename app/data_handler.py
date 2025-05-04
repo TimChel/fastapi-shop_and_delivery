@@ -126,30 +126,6 @@ def create_and_add_delivery_to_db(session):
             "date": i.due_date,
             "truck_id": -1
         })
-    order_data.sort(key = lambda x: x["date"])
-    order_in_truck = []
-    empty_track = truck_data.copy()
-    non_empty_truck = []
-    for box in order_data:
-        boxes_in_truck(empty_track.copy(), non_empty_truck.copy(), [box])
-    pass
-
-def boxes_in_truck(empty_truck, non_empty_truck, boxes):
-    for truck in non_empty_truck:
-        if len(truck["free_space"]) >= len(boxes[0]["size"]):
-            for start in truck["free_space"]:
-                free_space = truck["free_space"].copy()
-                for dot in boxes[0]["size"]:
-                    if [dot[0] + start[0], dot[1] + start[1]] in truck["free_space"]:
-                        free_space.remove([dot[0] + start[0], dot[1] + start[1]])
-                    else:
-                        break
-                else:
-                    if len(boxes) == 1:
-                        truck["free_space"]=free_space
-                        return empty_truck, non_empty_truck, boxes
-                    else:
-                        boxes_in_truck(empty_truck, )
 
 
 
