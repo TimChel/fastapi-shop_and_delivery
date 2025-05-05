@@ -1,3 +1,5 @@
+from operator import index
+
 from fastapi import APIRouter, status, Depends, HTTPException
 from sqlmodel import Session, select
 from sqlalchemy.exc import IntegrityError
@@ -144,18 +146,22 @@ def create_and_add_delivery_to_db(session):
     delivery = Delivery(cost=money)
     delivery = add_to_db(delivery, session)
     for i_truck in truck:
-        if non_empty_truck and i_truck.id == non_empty_truck[0]["id"]:
+        index_list_non_empty_truck = [non_empty_truck[i]["id"] for i in range(len(non_empty_truck))]
+        if non_empty_truck and i_truck.id in index_list_non_empty_truck:
+            index_non_empty_truck = index_list_non_empty_truck.index(i_truck.id)
             i_truck.delivery_id = delivery.id
             i_truck.available = False
             add_to_db(i_truck, session)
-            non_empty_truck.pop(0)
+            non_empty_truck.pop(index_non_empty_truck)
     for i_order in order:
-        if order_in_truck and i_order.id == order_in_truck[0]["id"]:
-            i_order.truck_id = order_in_truck[0]["truck_id"]
+        index_list_order_in_truck = [order_in_truck[i]["id"] for i in range(len(order_in_truck))]
+        if order_in_truck and i_order.id in index_list_order_in_truck:
+            index_order_in_truck = index_list_order_in_truck.index(i_order.id)
+            i_order.truck_id = order_in_truck[index_order_in_truck]["truck_id"]
             i_order.delivery_id = delivery.id
             i_order.on_the_way = True
             add_to_db(i_order, session)
-            order_in_truck.pop(0)
+            order_in_truck.pop(index_order_in_truck)
     session.refresh(delivery)
     return delivery
 
