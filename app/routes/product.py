@@ -1,13 +1,11 @@
 from typing import Annotated
 from fastapi import APIRouter, status, Depends, HTTPException
 from app.models import model
-from app.api_docs import request_examples
 from app.data_handler import (add_product_to_db, update_product_p, delete_data)
 from app.db import get_session
 from sqlmodel import Session, select
 from app.auth import auth_handler
-from sqlalchemy.exc import IntegrityError
-from psycopg2.errors import UniqueViolation
+
 
 router = APIRouter(prefix="/product", tags=["Работа с товарами"])
 
@@ -48,6 +46,9 @@ def update_user(id_product: int, product: model.ProductUpdate, current_user: Ann
     if current_user.access_level.name != "admin" and db_product.provider.user_id != current_user.user_id:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
                             detail=f"Изменение товара другого пользователя запрещено ")
+    if any([i.on_the_way for i in db_product.orders]):
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
+                            detail=f"Невозможно изменить товар, который находится в процессе доставки")
     updated_product = update_product_p(db_product, product, session)
     return updated_product
 
@@ -59,5 +60,8 @@ def delete_product_by_id(id_product: int, current_user: Annotated[model.User, De
     if current_user.access_level.name != "admin" and db_product.provider.user_id != current_user.user_id:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
                             detail=f"Удаление товара другого пользователя запрещено")
+    if any([i.on_the_way for i in db_product.orders]):
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
+                            detail=f"Невозможно удалить товар, который находится в процессе доставки")
     db_product = delete_data(db_product, session)
     return f"Товар {db_product.name} удален"
