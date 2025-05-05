@@ -72,9 +72,9 @@ def get_access_level(access_level_name, session):
     return access_level
 
 def add_product_to_db(product, current_user, session):
-    size_check(product.size_x, product.size_y, product.turn_permission, session)
     extra_data = {"provider_id": current_user.user_id}
     new_product = model.Product.model_validate(product, update=extra_data)
+    size_check(new_product.size_x, new_product.size_y, new_product.turn_permission, session)
     try:
         new_product = add_to_db(new_product, session)
         return new_product
@@ -86,7 +86,7 @@ def update_product_p(db_product, product, session):
     try:
         product_data = product.model_dump(exclude_unset=True)
         db_product.sqlmodel_update(product_data)
-        size_check(product.size_x, product.size_y, product.turn_permission, session)
+        size_check(db_product.size_x, db_product.size_y, db_product.turn_permission, session)
         db_product = add_to_db(db_product, session)
         return db_product
     except IntegrityError:
